@@ -1,0 +1,44 @@
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn import preprocessing
+from sklearn.metrics import silhouette_samples, silhouette_score 
+from matplotlib import pyplot as plt
+
+
+### applies a standard scaler to your data to remove any biasing variables 
+
+data_stand = YOUR DATA # creates a copy of your original data, preferably as a pandas dataframe, so as to not overwrite it
+sc_data = preprocessing.StandardScaler()
+data_stand = sc_data.fit_transform(data_stand)
+
+
+### creates a plot of inertia and silhouette against number of clusters for use as an Elbow diagram 
+
+cluster_range = range(2,10) # adjust upper limit for number of clusters as desired
+cluster_errors = []
+cluster_sil = []
+
+for num_clusters in cluster_range:
+    clusters = KMeans(n_clusters = num_clusters).fit(data_stand) 
+    cluster_errors.append(clusters.inertia_)
+    cluster_sil.append(silhouette_score(state_space, clusters.labels_))
+    
+clusters_df = pd.DataFrame({'Number of Clusters':cluster_range, 'Cluster Errors': cluster_errors, 'Silhouette': cluster_sil})
+
+ax = clusters_df.plot(y = 'Cluster Errors', x = 'Number of Clusters')
+clusters_df.plot(y = 'Silhouette', x = 'Number of Clusters', secondary_y = True, ax = ax)
+
+
+
+### having determined your optimum K value, fit the clustering algo and plot the centroids (if appropriate for your data) 
+
+K = 5 # sets the number of clusters
+
+kmeans = KMeans(n_clusters = K).fit(data_stand)
+members = pd.Series(kmeans.labels_).value_counts(sort = False)                # creates a list containing the number of data points in each category
+centroids = pd.DataFrame(sc_state.inverse_transform(kmeans.cluster_centers_)) # converts from standardised data back into the format 
+                                                                              # of your original data, remove if not needed
+for i in range(K):
+    plt.plot(centroids.iloc[i])
+    
+plt.legend(members) # attaches a member count to each category in the legend of the graph. Add axes titles etc. as appropriate
